@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fastapi-keycloak-bff"
+version = "0.1.0"
+description = "BFF con FastAPI y Keycloak"
+readme = "README.md"
+requires-python = ">=3.14.3"
+dependencies = [
+  "fastapi",
+  "gunicorn",
+  "uvicorn",
+  "uvicorn-worker",
+  "httpx",
+  "pydantic",
+  "pydantic-settings",
+  "python-multipart",
+  "psycopg[binary]",
+  "email-validator",
+  "boto3"
+]
+
+[tool.setuptools]
+packages = ["conf", "routers", "schemas", "services", "controllers"]
+py-modules = ["api"]
+
+[tool.fastapi]
+entrypoint = "api:app"

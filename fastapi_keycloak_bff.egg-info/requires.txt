@@ -1,0 +1,11 @@
+fastapi
+gunicorn
+uvicorn
+uvicorn-worker
+httpx
+pydantic
+pydantic-settings
+python-multipart
+psycopg[binary]
+email-validator
+boto3
