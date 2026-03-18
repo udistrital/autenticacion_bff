@@ -6,3 +6,10 @@ __pycache__/
 .mypy_cache/
 .idea/
 .vscode/
+
+autenticacion_bff
+
+# Swagger
+swagger/**
+!swagger/swagger.json
+!swagger/swagger.yml
