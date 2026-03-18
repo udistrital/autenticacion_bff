@@ -2,7 +2,10 @@ module github.com/udistrital/autenticacion_bff
 
 go 1.25.5
 
-require github.com/beego/beego/v2 v2.3.9
+require (
+	github.com/beego/beego/v2 v2.3.9
+	github.com/patrickmn/go-cache v2.1.0+incompatible
+)
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
