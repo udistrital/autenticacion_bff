@@ -17,6 +17,7 @@ type KeycloakService struct {
 	ClientID     string
 	ClientSecret string
 	RedirectURI  string
+	Scope        string
 }
 
 type TokenResponse struct {
@@ -35,13 +36,14 @@ type UserInfo struct {
 	Email             string `json:"email"`
 }
 
-func NewKeycloakService() *KeycloakService {
+func NewKeycloakServiceForClient(cfg *ClientConfig) *KeycloakService {
 	return &KeycloakService{
 		BaseURL:      beego.AppConfig.DefaultString("keycloak_base_url", ""),
 		Realm:        beego.AppConfig.DefaultString("keycloak_realm", ""),
-		ClientID:     beego.AppConfig.DefaultString("keycloak_client_id", ""),
-		ClientSecret: beego.AppConfig.DefaultString("keycloak_client_secret", ""),
-		RedirectURI:  beego.AppConfig.DefaultString("keycloak_redirect_uri", ""),
+		ClientID:     cfg.ClienteID,
+		ClientSecret: cfg.ClientSecret,
+		RedirectURI:  cfg.RedirectURI,
+		Scope:        cfg.Scope,
 	}
 }
 
@@ -49,13 +51,16 @@ func (k *KeycloakService) RealmURL() string {
 	return k.BaseURL + "/realms/" + k.Realm
 }
 
-func (k *KeycloakService) BuildLoginURL(state string) string {
+func (k *KeycloakService) BuildLoginURL(state string, codeChallenge string) string {
 	q := url.Values{}
 	q.Set("client_id", k.ClientID)
 	q.Set("response_type", "code")
-	q.Set("scope", "openid profile email")
+	q.Set("scope", k.Scope)
 	q.Set("redirect_uri", k.RedirectURI)
 	q.Set("state", state)
+	q.Set("code_challenge", codeChallenge)
+	q.Set("code_challenge_method", "S256")
+
 	return k.RealmURL() + "/protocol/openid-connect/auth?" + q.Encode()
 }
 
@@ -70,13 +75,14 @@ func (k *KeycloakService) BuildLogoutURL(idTokenHint, postLogoutRedirectURI stri
 	return k.RealmURL() + "/protocol/openid-connect/logout?" + q.Encode()
 }
 
-func (k *KeycloakService) ExchangeCode(code string) (*TokenResponse, error) {
+func (k *KeycloakService) ExchangeCode(code string, codeVerifier string) (*TokenResponse, error) {
 	form := url.Values{}
 	form.Set("grant_type", "authorization_code")
 	form.Set("client_id", k.ClientID)
 	form.Set("client_secret", k.ClientSecret)
 	form.Set("code", code)
 	form.Set("redirect_uri", k.RedirectURI)
+	form.Set("code_verifier", codeVerifier)
 
 	resp, err := http.Post(
 		k.RealmURL()+"/protocol/openid-connect/token",

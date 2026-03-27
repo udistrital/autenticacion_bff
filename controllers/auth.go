@@ -7,21 +7,30 @@ import (
 	"github.com/udistrital/autenticacion_bff/services"
 )
 
-// AuthController operations for Auth
 type AuthController struct {
 	beego.Controller
 }
 
 func (c *AuthController) Login() {
-	authURL := services.NewKeycloakService().BuildLoginURL("estado-inicial")
-	c.Redirect(authURL, http.StatusTemporaryRedirect)
+	clienteID := c.GetString("client_id")
+	resp, err := services.HandleLogin(&c.Controller, clienteID)
+	if err != nil {
+		c.CustomAbort(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	c.Redirect(resp.RedirectURL, http.StatusTemporaryRedirect)
 }
 
 func (c *AuthController) LoginURL() {
-	authURL := services.NewKeycloakService().BuildLoginURL("estado-inicial")
-	c.Data["json"] = map[string]string{
-		"auth_url": authURL,
+	clienteID := c.GetString("client_id")
+	resp, err := services.HandleLogin(&c.Controller, clienteID)
+	if err != nil {
+		c.CustomAbort(http.StatusBadRequest, err.Error())
+		return
 	}
+
+	c.Data["json"] = resp
 	_ = c.ServeJSON()
 }
 
@@ -29,14 +38,7 @@ func (c *AuthController) Callback() {
 	code := c.GetString("code")
 	state := c.GetString("state")
 
-	if code == "" {
-		c.CustomAbort(http.StatusBadRequest, "code es requerido")
-		return
-	}
-
-	_ = state // si después quieres validar state
-
-	resp, err := services.HandleCallback(&c.Controller, code)
+	resp, err := services.HandleCallback(&c.Controller, code, state)
 	if err != nil {
 		c.CustomAbort(http.StatusBadRequest, err.Error())
 		return
@@ -46,7 +48,8 @@ func (c *AuthController) Callback() {
 }
 
 func (c *AuthController) Logout() {
-	resp, err := services.HandleLogout(&c.Controller)
+	clienteID := c.GetString("client_id")
+	resp, err := services.HandleLogout(&c.Controller, clienteID)
 	if err != nil {
 		c.CustomAbort(http.StatusInternalServerError, err.Error())
 		return

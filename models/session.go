@@ -2,6 +2,7 @@ package models
 
 type Session struct {
 	IDSesion                     string  `dynamodbav:"id_sesion" json:"id_sesion"`
+	ClienteID                    string  `dynamodbav:"cliente_id" json:"cliente_id"`
 	IDUsuario                    string  `dynamodbav:"id_usuario" json:"id_usuario"`
 	NombreUsuario                *string `dynamodbav:"nombre_usuario" json:"nombre_usuario"`
 	CorreoElectronico            *string `dynamodbav:"correo_electronico" json:"correo_electronico"`

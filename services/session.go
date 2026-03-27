@@ -91,6 +91,7 @@ func (s *SessionService) generateSessionID() (string, error) {
 }
 
 func (s *SessionService) CrearSesion(
+	clienteID string,
 	idUsuario string,
 	nombreUsuario *string,
 	correoElectronico *string,
@@ -125,6 +126,7 @@ func (s *SessionService) CrearSesion(
 
 	item := models.Session{
 		IDSesion:                     idSesion,
+		ClienteID:                    clienteID,
 		IDUsuario:                    idUsuario,
 		NombreUsuario:                nombreUsuario,
 		CorreoElectronico:            correoElectronico,
@@ -368,7 +370,7 @@ func (s *SessionService) TokenAccesoVencido(sesion *models.Session) bool {
 	return !fechaExp.After(s.now())
 }
 
-func GetSesionActual(idSesion string, keycloak *KeycloakService) (*models.Session, error) {
+func GetSesionActual(idSesion string) (*models.Session, error) {
 	if idSesion == "" {
 		return nil, errors.New("sesión no encontrada")
 	}
@@ -385,6 +387,13 @@ func GetSesionActual(idSesion string, keycloak *KeycloakService) (*models.Sessio
 	if sesion == nil {
 		return nil, errors.New("sesión inválida o expirada")
 	}
+
+	cfg, err := GetClientConfig(sesion.ClienteID)
+	if err != nil {
+		return nil, err
+	}
+
+	keycloak := NewKeycloakServiceForClient(cfg)
 
 	if sessionService.TokenAccesoVencido(sesion) {
 		if sesion.TokenActualizacion == nil || *sesion.TokenActualizacion == "" {
@@ -427,10 +436,11 @@ func GetSesionActual(idSesion string, keycloak *KeycloakService) (*models.Sessio
 			return nil, err
 		}
 		if sesion == nil {
-			return nil, errors.New("no fue posible reconstruir la sesión")
+			return nil, errors.New("sesión inválida o expirada")
 		}
 	}
 
 	_ = sessionService.ActualizarUltimaActividad(idSesion)
+
 	return sesion, nil
 }

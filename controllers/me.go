@@ -13,18 +13,18 @@ func (c *MeController) GetMe() {
 	cookieName := beego.AppConfig.DefaultString("session_cookie_name", "id_sesion")
 	cookie, err := c.Ctx.Request.Cookie(cookieName)
 	if err != nil || cookie == nil || cookie.Value == "" {
-		c.CustomAbort(401, "Sesión no encontrada")
+		c.CustomAbort(401, "sesión no encontrada")
 		return
 	}
 
-	keycloak := services.NewKeycloakService()
-	sesion, err := services.GetSesionActual(cookie.Value, keycloak)
+	sesion, err := services.GetSesionActual(cookie.Value)
 	if err != nil {
 		c.CustomAbort(401, err.Error())
 		return
 	}
 
 	c.Data["json"] = map[string]interface{}{
+		"cliente_id":         sesion.ClienteID,
 		"id_usuario":         sesion.IDUsuario,
 		"correo_electronico": sesion.CorreoElectronico,
 		"nombre_usuario":     sesion.NombreUsuario,
